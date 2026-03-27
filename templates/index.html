@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pain Point Agent — MoneyPrinterV2</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --accent:    #00d4aa;
+      --accent2:   #238636;
+      --warn:      #d29922;
+      --danger:    #f85149;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --radius:    10px;
+      --font:      'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    header .sub  { color: var(--muted); font-size: 0.85rem; }
+
+    .tabs {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      padding: 0 2rem;
+    }
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color .15s, border-color .15s;
+      user-select: none;
+    }
+    .tab.active { color: var(--accent); border-color: var(--accent); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    .view { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+    .view.active { display: block; }
+
+    /* ── Cards ───────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Form elements ───────────────────────────────────────────── */
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: .35rem; }
+
+    input[type="text"], input[type="url"], textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      padding: .6rem .8rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+
+    textarea { resize: vertical; min-height: 100px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .6rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover  { opacity: .85; }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Pipeline progress ───────────────────────────────────────── */
+    #progress-panel { display: none; }
+
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .5rem .75rem;
+      border-radius: 6px;
+      background: var(--bg);
+      font-size: 0.85rem;
+      transition: background .2s;
+    }
+    .pipeline-step.active   { background: rgba(0,212,170,.08); }
+    .pipeline-step.done     { background: rgba(35,134,54,.08); }
+    .pipeline-step.error    { background: rgba(248,81,73,.08); }
+
+    .step-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+      background: var(--border);
+      color: var(--muted);
+    }
+    .pipeline-step.active .step-icon  { background: var(--accent); color: #000; animation: pulse 1s infinite; }
+    .pipeline-step.done  .step-icon   { background: var(--accent2); color: #fff; }
+    .pipeline-step.error .step-icon   { background: var(--danger); color: #fff; }
+
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+    .log-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .75rem 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: monospace;
+      max-height: 160px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    /* ── Results ─────────────────────────────────────────────────── */
+    #results-panel { display: none; }
+
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent);
+      margin-bottom: .5rem;
+    }
+
+    .industry-badge {
+      background: rgba(0,212,170,.1);
+      border: 1px solid rgba(0,212,170,.25);
+      border-radius: 6px;
+      padding: .6rem 1rem;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .pain-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .pain-card .num {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: .4rem;
+    }
+
+    .pain-card .pain-text { font-size: 0.85rem; margin-bottom: .75rem; }
+
+    .pain-card .solution-text {
+      font-size: 0.8rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: .6rem;
+    }
+
+    .email-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+
+    .copy-btn {
+      font-size: 0.75rem;
+      padding: .35rem .75rem;
+      margin-top: .75rem;
+    }
+
+    /* ── History tab ─────────────────────────────────────────────── */
+    .history-list { display: flex; flex-direction: column; gap: .75rem; }
+
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .history-item:hover { border-color: var(--accent); }
+
+    .history-item .company { font-weight: 600; }
+    .history-item .meta    { font-size: 0.78rem; color: var(--muted); margin-top: .2rem; }
+    .history-actions       { display: flex; gap: .5rem; flex-shrink: 0; }
+
+    /* ── Batch tab ───────────────────────────────────────────────── */
+    .batch-jobs { display: flex; flex-direction: column; gap: .5rem; margin-top: 1rem; }
+
+    .batch-job {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .badge-running  { background: rgba(0,212,170,.15); color: var(--accent); }
+    .badge-done     { background: rgba(35,134,54,.2);  color: #3fb950; }
+    .badge-error    { background: rgba(248,81,73,.2);  color: var(--danger); }
+
+    /* ── Modal ───────────────────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    .overlay.hidden { display: none; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.75rem;
+    }
+
+    .modal-close {
+      float: right;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* ── Misc ────────────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 3rem;
+      font-size: 0.9rem;
+    }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<header>
+  <div>
+    <div class="logo">&#9997; Pain Point Agent</div>
+    <div class="sub">MoneyPrinterV2 — Company Research Dashboard</div>
+  </div>
+</header>
+
+<!-- ── Tabs ────────────────────────────────────────────────────────── -->
+<div class="tabs">
+  <div class="tab active" data-tab="research">Research</div>
+  <div class="tab" data-tab="batch">Batch</div>
+  <div class="tab" data-tab="history">History</div>
+</div>
+
+<!-- ======================================================= RESEARCH -->
+<div class="view active" id="tab-research">
+
+  <!-- Input form -->
+  <div class="card">
+    <div class="card-title">Research a Company</div>
+    <div class="form-row" style="margin-bottom:1rem">
+      <div>
+        <label>Company Name *</label>
+        <input type="text" id="company-name" placeholder="e.g. Acme Plumbing Ltd" />
+      </div>
+      <div>
+        <label>Website URL <span style="color:var(--muted)">(optional)</span></label>
+        <input type="url" id="website-url" placeholder="https://example.com" />
+      </div>
+    </div>
+    <button class="btn btn-primary" id="research-btn" onclick="startResearch()">
+      &#9656; Run Agent
+    </button>
+  </div>
+
+  <!-- Pipeline progress -->
+  <div class="card" id="progress-panel">
+    <div class="card-title">Pipeline Progress</div>
+    <div class="pipeline" id="pipeline">
+      <div class="pipeline-step" id="step-scraping">
+        <div class="step-icon">1</div><span>Scraping website</span>
+      </div>
+      <div class="pipeline-step" id="step-industry">
+        <div class="step-icon">2</div><span>Identifying industry</span>
+      </div>
+      <div class="pipeline-step" id="step-pain_points">
+        <div class="step-icon">3</div><span>Finding pain points</span>
+      </div>
+      <div class="pipeline-step" id="step-solutions">
+        <div class="step-icon">4</div><span>Generating solutions</span>
+      </div>
+      <div class="pipeline-step" id="step-email">
+        <div class="step-icon">5</div><span>Drafting email</span>
+      </div>
+    </div>
+    <div class="log-box" id="log-box"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="card" id="results-panel">
+    <div class="card-title">Results — <span id="res-company-name"></span></div>
+
+    <div class="section-label">Industry</div>
+    <div class="industry-badge" id="res-industry"></div>
+
+    <div class="section-label">Pain Points &amp; Solutions</div>
+    <div class="pain-grid" id="res-pain-grid"></div>
+
+    <div class="section-label">Outreach Email Draft</div>
+    <div class="email-box" id="res-email"></div>
+    <button class="btn btn-ghost copy-btn" onclick="copyEmail()">&#128203; Copy Email</button>
+  </div>
+
+</div>
+
+<!-- ========================================================== BATCH -->
+<div class="view" id="tab-batch">
+
+  <div class="card">
+    <div class="card-title">Batch Research</div>
+    <label>Companies — one per line, format: <code>Company Name, https://website.com</code></label>
+    <textarea id="batch-input" placeholder="Acme Plumbing, https://acmeplumbing.com&#10;Metro Electricians&#10;City Accountants, https://cityaccountants.co.uk"></textarea>
+    <br/>
+    <button class="btn btn-primary" style="margin-top:.75rem" onclick="startBatch()">
+      &#9656; Run Batch
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Batch Jobs</div>
+    <div class="batch-jobs" id="batch-jobs">
+      <div class="empty-state">No batch jobs yet.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========================================================= HISTORY -->
+<div class="view" id="tab-history">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+    <div style="color:var(--muted); font-size:.85rem"><span id="history-count">0</span> saved results</div>
+    <button class="btn btn-ghost" onclick="loadHistory()">&#8635; Refresh</button>
+  </div>
+
+  <div class="history-list" id="history-list">
+    <div class="empty-state">No results saved yet.</div>
+  </div>
+
+</div>
+
+<!-- ===================================================== DETAIL MODAL -->
+<div class="overlay hidden" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-body">
+    <span class="modal-close" onclick="closeModal(null, true)">&#10005;</span>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- ================================================================ JS -->
+<script>
+  // ── Tab switching ──────────────────────────────────────────────────
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'history') loadHistory();
+    });
+  });
+
+  // ── Pipeline step helpers ──────────────────────────────────────────
+  const STAGE_STEP_MAP = {
+    'start':         null,
+    'scraping':      'scraping',
+    'industry':      'industry',
+    'industry_done': 'industry',
+    'pain_points':   'pain_points',
+    'pain_point_item': 'pain_points',
+    'solutions':     'solutions',
+    'solution_item': 'solutions',
+    'email':         'email',
+    'email_done':    'email',
+    'warning':       null,
+    'info':          null,
+  };
+
+  const STEP_ORDER = ['scraping', 'industry', 'pain_points', 'solutions', 'email'];
+
+  function markStep(stage, done = false) {
+    const stepKey = STAGE_STEP_MAP[stage];
+    if (!stepKey) return;
+
+    const stepIdx = STEP_ORDER.indexOf(stepKey);
+
+    STEP_ORDER.forEach((key, idx) => {
+      const el = document.getElementById('step-' + key);
+      if (!el) return;
+      el.classList.remove('active', 'done');
+      const icon = el.querySelector('.step-icon');
+      icon.textContent = idx + 1;
+
+      if (idx < stepIdx) {
+        el.classList.add('done');
+        icon.textContent = '✓';
+      } else if (idx === stepIdx) {
+        el.classList.add(done ? 'done' : 'active');
+        if (done) icon.textContent = '✓';
+      }
+    });
+  }
+
+  function markAllDone() {
+    STEP_ORDER.forEach(key => {
+      const el = document.getElementById('step-' + key);
+      if (!el) return;
+      el.classList.remove('active');
+      el.classList.add('done');
+      el.querySelector('.step-icon').textContent = '✓';
+    });
+  }
+
+  function resetPipeline() {
+    STEP_ORDER.forEach((key, idx) => {
+      const el = document.getElementById('step-' + key);
+      if (!el) return;
+      el.classList.remove('active', 'done', 'error');
+      el.querySelector('.step-icon').textContent = idx + 1;
+    });
+    document.getElementById('log-box').innerHTML = '';
+  }
+
+  function appendLog(msg) {
+    const box = document.getElementById('log-box');
+    box.innerHTML += `<div>${escapeHtml(msg)}</div>`;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  // ── Research ───────────────────────────────────────────────────────
+  function startResearch() {
+    const name = document.getElementById('company-name').value.trim();
+    const url  = document.getElementById('website-url').value.trim();
+
+    if (!name) {
+      alert('Company name is required.');
+      return;
+    }
+
+    const btn = document.getElementById('research-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Running...';
+
+    resetPipeline();
+    document.getElementById('progress-panel').style.display = 'block';
+    document.getElementById('results-panel').style.display  = 'none';
+
+    fetch('/api/research/start', {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify({company_name: name, website_url: url}),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { showError(data.error); return; }
+      listenToJob(data.job_id, result => renderResult(result));
+    })
+    .catch(err => showError(err.message));
+  }
+
+  function listenToJob(jobId, onComplete) {
+    const es = new EventSource(`/api/research/stream/${jobId}`);
+
+    es.onmessage = e => {
+      const event = JSON.parse(e.data);
+      if (event.type === 'ping') return;
+
+      if (event.type === 'progress') {
+        appendLog(event.message);
+        markStep(event.stage);
+      } else if (event.type === 'complete') {
+        markAllDone();
+        es.close();
+        if (onComplete) onComplete(event.result);
+        const btn = document.getElementById('research-btn');
+        if (btn) { btn.disabled = false; btn.textContent = '▶ Run Agent'; }
+      } else if (event.type === 'error') {
+        appendLog('ERROR: ' + event.message);
+        es.close();
+        const btn = document.getElementById('research-btn');
+        if (btn) { btn.disabled = false; btn.textContent = '▶ Run Agent'; }
+      }
+    };
+
+    es.onerror = () => es.close();
+    return es;
+  }
+
+  function renderResult(result) {
+    document.getElementById('results-panel').style.display = 'block';
+    document.getElementById('res-company-name').textContent = result.company_name;
+    document.getElementById('res-industry').textContent     = result.industry;
+    document.getElementById('res-email').textContent        = result.email_body;
+
+    const grid = document.getElementById('res-pain-grid');
+    grid.innerHTML = '';
+    result.pain_points.forEach((pp, i) => {
+      const sol = result.solutions[i] || '';
+      grid.innerHTML += `
+        <div class="pain-card">
+          <div class="num">${i + 1}</div>
+          <div class="pain-text">${escapeHtml(pp)}</div>
+          <div class="solution-text">&#128161; ${escapeHtml(sol)}</div>
+        </div>`;
+    });
+
+    document.getElementById('results-panel').scrollIntoView({behavior: 'smooth'});
+  }
+
+  // ── Batch ──────────────────────────────────────────────────────────
+  function startBatch() {
+    const raw = document.getElementById('batch-input').value.trim();
+    if (!raw) { alert('Enter at least one company.'); return; }
+
+    const lines     = raw.split('\n').filter(l => l.trim());
+    const companies = lines.map(line => {
+      const parts = line.split(',').map(s => s.trim());
+      return {company_name: parts[0], website_url: parts[1] || ''};
+    });
+
+    fetch('/api/batch', {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify({companies}),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { alert(data.error); return; }
+
+      const container = document.getElementById('batch-jobs');
+      container.innerHTML = '';
+
+      data.job_ids.forEach((jobId, idx) => {
+        const company = companies[idx]?.company_name || jobId;
+        const rowId   = 'bj-' + jobId;
+
+        container.innerHTML += `
+          <div class="batch-job" id="${rowId}">
+            <span>${escapeHtml(company)}</span>
+            <span class="badge badge-running" id="${rowId}-badge">Running</span>
+          </div>`;
+
+        listenToJob(jobId, result => {
+          document.getElementById(`${rowId}-badge`).className = 'badge badge-done';
+          document.getElementById(`${rowId}-badge`).textContent = 'Done';
+        });
+      });
+    })
+    .catch(err => alert(err.message));
+  }
+
+  // ── History ────────────────────────────────────────────────────────
+  function loadHistory() {
+    fetch('/api/results')
+      .then(r => r.json())
+      .then(items => {
+        const list = document.getElementById('history-list');
+        document.getElementById('history-count').textContent = items.length;
+
+        if (items.length === 0) {
+          list.innerHTML = '<div class="empty-state">No results saved yet.</div>';
+          return;
+        }
+
+        list.innerHTML = '';
+        items.forEach((item, idx) => {
+          list.innerHTML += `
+            <div class="history-item" onclick="openModal(${idx})">
+              <div>
+                <div class="company">${escapeHtml(item.company_name)}</div>
+                <div class="meta">${escapeHtml(item.industry?.slice(0,80) || '')}${item.website ? ' · ' + escapeHtml(item.website) : ''}</div>
+              </div>
+              <div class="history-actions">
+                <button class="btn btn-ghost" style="font-size:.75rem; padding:.35rem .75rem"
+                  onclick="event.stopPropagation(); openModal(${idx})">View</button>
+                <button class="btn btn-danger" style="font-size:.75rem; padding:.35rem .75rem"
+                  onclick="event.stopPropagation(); deleteResult(${idx})">Delete</button>
+              </div>
+            </div>`;
+        });
+
+        // Store items for modal access
+        window._historyItems = items;
+      });
+  }
+
+  function deleteResult(idx) {
+    if (!confirm('Delete this result?')) return;
+    fetch(`/api/results/${idx}`, {method: 'DELETE'})
+      .then(() => loadHistory());
+  }
+
+  // ── Modal ──────────────────────────────────────────────────────────
+  function openModal(idx) {
+    const item = window._historyItems?.[idx];
+    if (!item) return;
+
+    let pairsHtml = '';
+    item.pain_points.forEach((pp, i) => {
+      pairsHtml += `
+        <div class="pain-card" style="margin-bottom:.75rem">
+          <div class="num">${i + 1}</div>
+          <div class="pain-text">${escapeHtml(pp)}</div>
+          <div class="solution-text">&#128161; ${escapeHtml(item.solutions[i] || '')}</div>
+        </div>`;
+    });
+
+    document.getElementById('modal-content').innerHTML = `
+      <h2 style="margin-bottom:.25rem">${escapeHtml(item.company_name)}</h2>
+      ${item.website ? `<a href="${escapeHtml(item.website)}" target="_blank" style="color:var(--accent); font-size:.85rem">${escapeHtml(item.website)}</a>` : ''}
+      <hr class="divider"/>
+      <div class="section-label">Industry</div>
+      <div class="industry-badge" style="margin-bottom:1rem">${escapeHtml(item.industry)}</div>
+      <div class="section-label">Pain Points &amp; Solutions</div>
+      ${pairsHtml}
+      <div class="section-label" style="margin-top:1rem">Outreach Email Draft</div>
+      <div class="email-box">${escapeHtml(item.email_body)}</div>
+      <button class="btn btn-ghost copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(item.email_body)})">&#128203; Copy Email</button>
+    `;
+
+    document.getElementById('modal-overlay').classList.remove('hidden');
+  }
+
+  function closeModal(event, force = false) {
+    if (force || event?.target === document.getElementById('modal-overlay')) {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  function copyEmail() {
+    const text = document.getElementById('res-email').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.textContent = '📋 Copy Email'; }, 2000);
+    });
+  }
+
+  function showError(msg) {
+    appendLog('ERROR: ' + msg);
+    const btn = document.getElementById('research-btn');
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Run Agent'; }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // Load history count on startup
+  fetch('/api/results').then(r => r.json()).then(items => {
+    document.getElementById('history-count').textContent = items.length;
+    window._historyItems = items;
+  });
+</script>
+</body>
+</html>

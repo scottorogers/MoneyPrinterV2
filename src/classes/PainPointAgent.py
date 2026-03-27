@@ -168,42 +168,60 @@ class PainPointAgent:
     # Orchestration
     # ------------------------------------------------------------------
 
-    def research_company(self, company_name: str, website_url: str = "") -> dict:
+    def research_company(
+        self,
+        company_name: str,
+        website_url: str = "",
+        on_progress=None,
+    ) -> dict:
         """
         Run the full pipeline for one company and return a result dict.
+
+        Args:
+            company_name: Name of the company to research.
+            website_url:  Optional URL to scrape for context.
+            on_progress:  Optional callable(message: str, stage: str) invoked at
+                          each pipeline step — used by the web UI for SSE streaming.
         """
-        info(f"\n => Researching '{company_name}'...")
+        def _emit(message: str, stage: str = "info"):
+            if on_progress:
+                on_progress(message, stage)
+            else:
+                info(f" => {message}")
+
+        _emit(f"Researching '{company_name}'...", "start")
 
         # Step 1 – scrape
         content = ""
         if website_url:
-            info(f" => Scraping {website_url}...")
+            _emit(f"Scraping {website_url}...", "scraping")
             content = self.scrape_website(website_url)
             if content:
-                success(f" => Scraped {len(content)} characters.")
+                _emit(f"Scraped {len(content)} characters.", "scraping")
             else:
-                warning(" => Could not scrape website. Continuing with name only.")
+                _emit("Could not scrape website. Continuing with name only.", "warning")
 
         # Step 2 – identify industry
-        info(" => Identifying industry...")
+        _emit("Identifying industry...", "industry")
         industry = self.identify_industry(company_name, content)
-        success(f" => Industry: {industry[:120]}")
+        _emit(f"Industry identified: {industry[:120]}", "industry_done")
 
         # Step 3 – pain points
-        info(" => Finding pain points...")
+        _emit("Finding pain points...", "pain_points")
         pain_points = self.find_pain_points(company_name, industry, content)
         for i, pp in enumerate(pain_points, 1):
-            info(f"    {i}. {pp}", False)
+            _emit(f"Pain point {i}: {pp}", "pain_point_item")
 
         # Step 4 – solutions
-        info(" => Generating solutions...")
+        _emit("Generating solutions...", "solutions")
         solutions = self.generate_solutions(company_name, pain_points)
         for i, sol in enumerate(solutions, 1):
-            info(f"    {i}. {sol[:100]}...", False)
+            _emit(f"Solution {i} ready.", "solution_item")
 
         # Step 5 – draft email
-        info(" => Drafting outreach email...")
+        _emit("Drafting outreach email...", "email")
         email_body = self.generate_outreach_email(company_name, pain_points, solutions)
+        _emit("Email draft complete.", "email_done")
 
         return {
             "company_name": company_name,
