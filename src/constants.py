@@ -10,6 +10,7 @@ OPTIONS = [
     "Twitter Bot",
     "Affiliate Marketing",
     "Outreach",
+    "Pain Point Agent",
     "Quit"
 ]
 

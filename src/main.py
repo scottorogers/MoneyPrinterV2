@@ -15,6 +15,7 @@ from classes.YouTube import YouTube
 from prettytable import PrettyTable
 from classes.Outreach import Outreach
 from classes.AFM import AffiliateMarketing
+from classes.PainPointAgent import PainPointAgent
 from llm_provider import list_models, select_model, get_active_model
 
 def main():
@@ -418,6 +419,12 @@ def main():
 
         outreach.start()
     elif user_input == 5:
+        info("Starting Pain Point Agent...")
+
+        agent = PainPointAgent()
+
+        agent.run()
+    elif user_input == 6:
         if get_verbose():
             print(colored(" => Quitting...", "blue"))
         sys.exit(0)
