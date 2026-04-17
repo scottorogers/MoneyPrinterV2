@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forsite AI — Construction Project Management Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Tokens ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0D0F14;
+      --surface:   #161A22;
+      --surface2:  #1E2330;
+      --border:    #2A3045;
+      --accent:    #F97316;
+      --accent-h:  #EA6708;
+      --text:      #F0F2F7;
+      --muted:     #8A93A8;
+      --white:     #FFFFFF;
+      --radius:    12px;
+      --max-w:     1100px;
+      --transition: 0.25s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Syne', sans-serif;
+      line-height: 1.15;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── Scroll Animation ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      border: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--white);
+    }
+    .btn-primary:hover {
+      background: var(--accent-h);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(249,115,22,0.35);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* ─── Section Label ─── */
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    /* ─── Nav ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,15,20,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { margin-left: 16px; }
+
+    /* ─── Hero ─── */
+    #hero {
+      padding: 104px 0 96px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-glow {
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(249,115,22,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(249,115,22,0.1);
+      border: 1px solid rgba(249,115,22,0.25);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+    .hero-label::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 800;
+      color: var(--white);
+      max-width: 780px;
+      margin-bottom: 22px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 560px;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    /* ─── Pain Points ─── */
+    #pain {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .pain-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pain-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--accent);
+    }
+    .pain-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    .pain-card h3 {
+      font-size: 1.05rem;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+    .pain-card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ─── Services ─── */
+    #services {
+      padding: 96px 0;
+    }
+    .section-header {
+      max-width: 580px;
+      margin-bottom: 56px;
+    }
+    .section-header h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+    .section-header p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .service-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+    .service-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+    .service-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(249,115,22,0.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+    }
+    .service-card h3 {
+      font-size: 1.15rem;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+    .service-card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ─── How It Works ─── */
+    #how {
+      padding: 96px 0;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 56px;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: calc(16.66% + 24px);
+      right: calc(16.66% + 24px);
+      height: 2px;
+      background: linear-gradient(to right, var(--accent), rgba(249,115,22,0.2));
+    }
+    .step {
+      text-align: center;
+      padding: 0 24px;
+    }
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--accent);
+      margin: 0 auto 24px;
+    }
+    .step h3 {
+      font-size: 1.1rem;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+    .step p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ─── Stats ─── */
+    #stats {
+      padding: 72px 0;
+      background: var(--accent);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.4rem, 4vw, 3.2rem);
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-label {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.8);
+      font-weight: 500;
+    }
+
+    /* ─── Testimonials ─── */
+    #testimonials {
+      padding: 96px 0;
+    }
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-top: 56px;
+    }
+    .testi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+    }
+    .testi-quote {
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.75;
+      margin-bottom: 28px;
+      font-style: italic;
+    }
+    .testi-quote::before {
+      content: '"';
+      font-family: 'Syne', sans-serif;
+      font-size: 3rem;
+      color: var(--accent);
+      line-height: 0;
+      vertical-align: -0.5em;
+      margin-right: 4px;
+    }
+    .testi-author {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .testi-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--white);
+      flex-shrink: 0;
+    }
+    .testi-name {
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: var(--white);
+    }
+    .testi-role {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ─── Contact ─── */
+    #contact {
+      padding: 96px 0;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 72px;
+      align-items: start;
+    }
+    .contact-copy h2 {
+      font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+      color: var(--white);
+      margin-bottom: 18px;
+    }
+    .contact-copy p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.75;
+      margin-bottom: 36px;
+    }
+    .contact-detail {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+    }
+    .contact-detail-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(249,115,22,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.93rem;
+      color: var(--text);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+      width: 100%;
+      -webkit-appearance: none;
+    }
+    .form-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A93A8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(249,115,22,0.15);
+    }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: var(--border);
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .form-submit {
+      margin-top: 8px;
+      width: 100%;
+      justify-content: center;
+      padding: 14px;
+      font-size: 1rem;
+    }
+    .form-success {
+      display: none;
+      background: rgba(34,197,94,0.1);
+      border: 1.5px solid rgba(34,197,94,0.3);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      color: #4ADE80;
+      font-weight: 500;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 36px 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--white);
+    }
+    .footer-logo span { color: var(--accent); }
+    .footer-tagline {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .footer-copy {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+
+      .pain-grid,
+      .services-grid,
+      .steps,
+      .testi-grid { grid-template-columns: 1fr; }
+
+      .steps::before { display: none; }
+
+      .stats-grid { grid-template-columns: 1fr; gap: 40px; }
+
+      .contact-inner { grid-template-columns: 1fr; gap: 40px; }
+
+      .form-row { grid-template-columns: 1fr; }
+
+      .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+
+      #hero { padding: 72px 0 64px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Nav ─── -->
+  <nav>
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo">Forsite<span>AI</span></a>
+      <ul class="nav-links">
+        <li><a href="#services">Services</a></li>
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#testimonials">Clients</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <a href="#contact" class="btn btn-primary nav-cta">Get in Touch</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ─── Hero ─── -->
+    <section id="hero">
+      <div class="hero-glow"></div>
+      <div class="container">
+        <div class="hero-label">Now accepting new clients for Q2 2026</div>
+        <h1 class="reveal">Your <em>AI Edge</em> in Construction<br>Project Management</h1>
+        <p class="reveal">We embed AI intelligence into your construction workflows — cutting cost overruns, surfacing risks before they escalate, and putting your project data to work from day one.</p>
+        <div class="hero-actions reveal">
+          <a href="#contact" class="btn btn-primary">Start a Conversation ↗</a>
+          <a href="#services" class="btn btn-outline">See What We Do</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Pain Points ─── -->
+    <section id="pain">
+      <div class="container">
+        <span class="eyebrow reveal">The Problem</span>
+        <h2 class="reveal" style="font-size: clamp(1.7rem,2.8vw,2.3rem); color: var(--white); max-width: 520px;">Construction PM is drowning in complexity</h2>
+        <div class="pain-grid">
+          <div class="pain-card reveal">
+            <div class="pain-icon">⏱</div>
+            <h3>Chronic Schedule Overruns</h3>
+            <p>63% of major construction projects finish late. Fragmented data and reactive decision-making keep PMs perpetually behind.</p>
+          </div>
+          <div class="pain-card reveal">
+            <div class="pain-icon">📉</div>
+            <h3>Budget Blow-Outs</h3>
+            <p>Cost overruns average 28% on large projects. Hidden risks in subcontractor chains and change orders compound silently until it's too late.</p>
+          </div>
+          <div class="pain-card reveal">
+            <div class="pain-icon">🔗</div>
+            <h3>Disconnected Stakeholders</h3>
+            <p>Owners, GCs, subs, and architects operate from different versions of the truth — generating rework, disputes, and delay claims.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Services ─── -->
+    <section id="services">
+      <div class="container">
+        <div class="section-header">
+          <span class="eyebrow reveal">What We Do</span>
+          <h2 class="reveal">AI-powered consulting built for the job site</h2>
+          <p class="reveal">We don't sell software. We embed alongside your team to design, implement, and operate AI systems tuned to your specific project environment.</p>
+        </div>
+        <div class="services-grid">
+          <div class="service-card reveal">
+            <div class="service-icon">🔮</div>
+            <h3>Predictive Project Forecasting</h3>
+            <p>Machine learning models trained on your historical project data predict schedule slippage and cost variances weeks before they materialise — giving you time to intervene.</p>
+          </div>
+          <div class="service-card reveal">
+            <div class="service-icon">⚠️</div>
+            <h3>Automated Risk Detection</h3>
+            <p>Continuous monitoring of RFIs, submittals, weather feeds, and procurement status automatically flags emerging risks and ranks them by financial exposure.</p>
+          </div>
+          <div class="service-card reveal">
+            <div class="service-icon">📄</div>
+            <h3>Document Intelligence</h3>
+            <p>AI extraction and cross-referencing of specs, drawings, contracts, and change orders — dramatically reducing review time and catching conflicts before construction begins.</p>
+          </div>
+          <div class="service-card reveal">
+            <div class="service-icon">📊</div>
+            <h3>Executive Reporting Automation</h3>
+            <p>Replace manual weekly reports with auto-generated dashboards that pull live data from your existing systems — delivered to stakeholders without PM intervention.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── How It Works ─── -->
+    <section id="how">
+      <div class="container">
+        <div class="section-header">
+          <span class="eyebrow reveal">The Process</span>
+          <h2 class="reveal">From first call to full deployment in weeks, not months</h2>
+        </div>
+        <div class="steps">
+          <div class="step reveal">
+            <div class="step-num">01</div>
+            <h3>Discovery Audit</h3>
+            <p>We map your current workflows, data sources, and pain points. No jargon — just a clear picture of where AI can deliver ROI fastest.</p>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">02</div>
+            <h3>Integrate & Configure</h3>
+            <p>We connect your existing tools — Procore, P6, Autodesk, spreadsheets — and build AI pipelines tailored to your project types and team structure.</p>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">03</div>
+            <h3>Optimise & Handover</h3>
+            <p>Live monitoring, iteration, and training so your team owns the system. We stay on as advisors — available when the project demands it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Stats ─── -->
+    <section id="stats">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="reveal">
+            <div class="stat-num">40%</div>
+            <div class="stat-label">Faster weekly reporting cycle</div>
+          </div>
+          <div class="reveal">
+            <div class="stat-num">$2.3M</div>
+            <div class="stat-label">Average cost variance prevented per project</div>
+          </div>
+          <div class="reveal">
+            <div class="stat-num">200+</div>
+            <div class="stat-label">Projects delivered with AI-assisted oversight</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Testimonials ─── -->
+    <section id="testimonials">
+      <div class="container">
+        <div class="section-header">
+          <span class="eyebrow reveal">Client Stories</span>
+          <h2 class="reveal">Trusted by the people building the built environment</h2>
+        </div>
+        <div class="testi-grid">
+          <div class="testi-card reveal">
+            <p class="testi-quote">Forsite AI's risk detection model flagged a subcontractor procurement issue six weeks before it would have hit the critical path. That single alert saved us close to $800K in delay claims on a hospital project.</p>
+            <div class="testi-author">
+              <div class="testi-avatar">MR</div>
+              <div>
+                <div class="testi-name">Marcus Reynolds</div>
+                <div class="testi-role">VP Construction, Meridian Health Infrastructure</div>
+              </div>
+            </div>
+          </div>
+          <div class="testi-card reveal">
+            <p class="testi-quote">We were skeptical about AI — our PMs aren't data scientists. The Forsite team handled everything and handed us a dashboard our entire team actually uses. Weekly reporting went from four hours to fifteen minutes.</p>
+            <div class="testi-author">
+              <div class="testi-avatar">TK</div>
+              <div>
+                <div class="testi-name">Taryn Kowalski</div>
+                <div class="testi-role">Operations Director, Kowalski Commercial Builders</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Contact ─── -->
+    <section id="contact">
+      <div class="container">
+        <div class="contact-inner">
+          <div class="contact-copy reveal">
+            <span class="eyebrow">Get In Touch</span>
+            <h2>Let's talk about your next project</h2>
+            <p>Tell us about your project environment and we'll walk you through where AI can make the biggest difference. No pitch decks — just an honest conversation.</p>
+            <div class="contact-detail">
+              <div class="contact-detail-icon">📍</div>
+              <span>Sydney, NSW — serving clients nationally and internationally</span>
+            </div>
+            <div class="contact-detail">
+              <div class="contact-detail-icon">📧</div>
+              <span>hello@forsiteai.com</span>
+            </div>
+            <div class="contact-detail">
+              <div class="contact-detail-icon">⚡</div>
+              <span>Typical response within one business day</span>
+            </div>
+          </div>
+
+          <form id="contact-form" class="reveal" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Alex Hartmann" required />
+              </div>
+              <div class="form-group">
+                <label for="email">Work Email</label>
+                <input type="email" id="email" name="email" placeholder="alex@company.com" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="company">Company</label>
+              <input type="text" id="company" name="company" placeholder="Hartmann Constructions" required />
+            </div>
+            <div class="form-group">
+              <label for="project-type">Project Type</label>
+              <select id="project-type" name="project_type" required>
+                <option value="" disabled selected>Select your sector…</option>
+                <option value="commercial">Commercial &amp; Mixed-Use</option>
+                <option value="infrastructure">Infrastructure &amp; Civil</option>
+                <option value="industrial">Industrial &amp; Resources</option>
+                <option value="residential">Large-Scale Residential</option>
+                <option value="government">Government &amp; Defence</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Tell us about your challenge</label>
+              <textarea id="message" name="message" placeholder="What's the biggest pain point in your current PM process? What does success look like?" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary form-submit">Send Message ↗</button>
+            <div id="form-success" class="form-success">
+              ✓ Message received! We'll be in touch within one business day.
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ─── Footer ─── -->
+  <footer>
+    <div class="container footer-inner">
+      <div>
+        <div class="footer-logo">Forsite<span>AI</span></div>
+        <div class="footer-tagline">Construction intelligence, by people who understand the job site.</div>
+      </div>
+      <div class="footer-copy">© 2026 Forsite AI. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Contact form
+    document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!this.checkValidity()) { this.reportValidity(); return; }
+      const btn = this.querySelector('.form-submit');
+      btn.textContent = 'Sending…';
+      btn.disabled = true;
+      setTimeout(() => {
+        document.getElementById('form-success').style.display = 'block';
+        btn.style.display = 'none';
+        this.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
+      }, 800);
+    });
+  </script>
+
+</body>
+</html>
