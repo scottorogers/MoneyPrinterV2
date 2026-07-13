@@ -3,7 +3,7 @@ import sys
 
 from status import *
 from cache import get_accounts
-from config import get_verbose
+from config import fetch_remote_config, get_verbose
 from classes.Tts import TTS
 from classes.Twitter import Twitter
 from classes.YouTube import YouTube
@@ -27,6 +27,8 @@ def main():
 
     Returns:
         None. The function performs operations based on the purpose and account UUID and does not return any value."""
+    fetch_remote_config()
+
     purpose = str(sys.argv[1])
     account_id = str(sys.argv[2])
     model = str(sys.argv[3]) if len(sys.argv) > 3 else None

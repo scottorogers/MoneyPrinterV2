@@ -2,10 +2,54 @@ import os
 import sys
 import json
 import srt_equalizer
+import urllib.request
+import urllib.error
 
 from termcolor import colored
 
 ROOT_DIR = os.path.dirname(sys.path[0])
+
+def fetch_remote_config() -> None:
+    """Fetch config from a remote URL and merge it into the local config.json.
+
+    The remote URL is read from the ``remote_config_url`` key in the local
+    config.json, or from the ``MPV2_REMOTE_CONFIG_URL`` environment variable.
+    Remote values take precedence over local ones.  If no URL is configured,
+    or if the fetch fails, the local config is left unchanged.
+    """
+    config_path = os.path.join(ROOT_DIR, "config.json")
+
+    try:
+        with open(config_path, "r") as f:
+            local_config = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return
+
+    url = os.environ.get("MPV2_REMOTE_CONFIG_URL") or local_config.get("remote_config_url", "")
+    if not url:
+        return
+
+    try:
+        print(colored(f"=> Fetching remote config from {url} ...", "cyan"))
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            remote_config = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, ValueError, OSError) as exc:
+        print(colored(f"Warning: could not fetch remote config ({exc}). Using local config.", "yellow"))
+        return
+
+    if not isinstance(remote_config, dict):
+        print(colored("Warning: remote config is not a JSON object. Ignoring.", "yellow"))
+        return
+
+    merged = {**local_config, **remote_config}
+    # Always preserve the local remote_config_url so the URL survives round-trips
+    if "remote_config_url" in local_config:
+        merged["remote_config_url"] = local_config["remote_config_url"]
+
+    with open(config_path, "w") as f:
+        json.dump(merged, f, indent=2)
+
+    print(colored("=> Remote config loaded and merged successfully.", "green"))
 
 def assert_folder_structure() -> None:
     """

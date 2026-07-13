@@ -38,6 +38,7 @@ All your configurations will be in a file in the root directory, called `config.
 - `font`: `string` - The font that will be used to generate images. This should be a `.ttf` file in the `fonts/` directory.
 - `imagemagick_path`: `string` - The path to the ImageMagick binary. This is used by MoviePy to manipulate images. Install ImageMagick from [here](https://imagemagick.org/script/download.php) and set the path to the `magick.exe` on Windows, or on Linux/MacOS the path to `convert` (usually /usr/bin/convert).
 - `script_sentence_length`: `number` - The number of sentences in the generated video script (default: `4`).
+- `remote_config_url`: `string` - Optional URL pointing to a remote JSON config file. If set, MPV2 fetches this URL at startup and merges the remote values over your local `config.json` (remote keys win). Leave empty to use only the local file. Can also be set via the `MPV2_REMOTE_CONFIG_URL` environment variable.
 
 ## Example
 
@@ -75,16 +76,19 @@ All your configurations will be in a file in the root directory, called `config.
   "tts_voice": "Jasper",
   "font": "bold_font.ttf",
   "imagemagick_path": "Path to magick.exe or on linux/macOS just /usr/bin/convert",
-  "script_sentence_length": 4
+  "script_sentence_length": 4,
+  "remote_config_url": ""
 }
 ```
 
 ## Environment Variable Fallbacks
 
 - `GEMINI_API_KEY`: used when `nanobanana2_api_key` is empty.
+- `MPV2_REMOTE_CONFIG_URL`: used when `remote_config_url` is empty in the local config.
 
 Example:
 
 ```bash
 export GEMINI_API_KEY="your_api_key_here"
+export MPV2_REMOTE_CONFIG_URL="https://example.com/my-mpv2-config.json"
 ```

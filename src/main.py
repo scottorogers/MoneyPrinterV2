@@ -430,6 +430,9 @@ if __name__ == "__main__":
     # Print ASCII Banner
     print_banner()
 
+    # Pull remote config before anything else reads config values
+    fetch_remote_config()
+
     first_time = get_first_time_running()
 
     if first_time:
